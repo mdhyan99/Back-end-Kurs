@@ -1,0 +1,19 @@
+{
+  "name": "Aufgabe-Api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "serverApi.js",
+  "scripts": {
+    "dev": "nodemon serverApi.js",
+    "start": "node serverApi.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}

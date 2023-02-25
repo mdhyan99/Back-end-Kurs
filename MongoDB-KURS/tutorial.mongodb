@@ -1,0 +1,300 @@
+// verbinden Vs mit Databank
+mongosh/**
+ * index: The name of the Search index.
+ * text: Analyzed search, with required fields of query and path, the analyzed field(s) to search.
+ * term: Un-analyzed search.
+ * compound: Combines ops.
+ * span: Find in text field regions.
+ * exists: Test for presence of a field.
+ * near: Find near number or date.
+ * range: Find in numeric or date range.
+ */
+$search: {
+  index: 'string',
+  text: {
+    query: 'string',
+    path: 'string'
+  }
+}
+
+// Terminal leeren
+cls
+
+// zeigen die Database
+show dbs
+
+// wechsel to andere Collection
+use product
+
+// delet collection 
+db.dropDatabase("product") // {ok:1,dropped:"product"}
+
+// für neu collection hinzufügen 
+db.createCollection("kunden")
+
+// delete one collection 
+db.products.drop() // true
+
+
+// ein neues Document anlegen
+
+db.product.insertOne(
+    {
+        name:"Banane süß gelb",
+        price:0.99,
+        category:"Obst",
+        views:16
+    }
+)
+//Mehrere Documente anlegen
+db.products.insertMany(
+    [
+        {
+        name:"Apfel",
+        price:0.60,
+        category:"Obst",
+        views:2
+    },
+       {
+        name:"Apfel Neu",
+        price:0.80,
+        category:"Obst",
+        views:10
+    },
+         {
+        name:"Banane süß grün",
+        price:0.99,
+        category:"Obst",
+        views:9
+    },
+       {
+        name:"Kiwi süß",
+        price:0.70,
+        category:"Obst",
+        views:3,
+        ratings:[
+            {user:"Paul",stars:4},
+            {user:"Tom",stars:5},
+            {user:"Max",stars:3},
+        ]
+    }   
+    ]
+)
+
+// Alle Documents  aus der Collection anzeigen (alle zeigen)
+db.products.find()
+
+//Ergebnisse formatieren 
+db.products.find().pretty()
+
+// Ergebnesse filtern (sucht nach Apfel)
+db.products.find({name:"Apfel"}) 
+
+// Ergebnesse sortieren
+db.products.find().sort({name:1}) // von A bis Z
+db.products.find().sort({name:-1}) // von Z bis A
+
+//Ergebnesse Zählen
+db.products.find().count()
+db.products.countDocuments()
+
+// Ergebnesse limitieren
+db.products.find().limit(2) // zeigt erste 2 product
+
+// Verkettung mehrere Funktion
+db.products.find().limit(2).sort({price:1}) // zeigt erste 2 billige product
+
+// ForEach Schleife 
+db.products.find().forEach((doc) => {
+    print("Product:" + doc.name)
+})
+// Product:Apfel
+// Product:Apfel Neu
+// Product:Kiwi
+// Product:Banane
+
+// Ergebnesse nach Größe/Kleiner filtern
+ db.products.find({price:{$gt:0.8}}) // zeigt die >0.80
+ db.products.find({price:{$gte :0.8}}) // zeigt die >= 0.80
+ db.products.find({price:{$lt:0.8}}) // zeigt die <0.80
+ db.products.find({price:{$lte:0.8}}) // zeigt die <= 0.80
+ /*
+equal =eq
+not equal =ne
+greater than = gt
+greater than or equal to  = gte
+less than = lt
+less than or equal to = lte
+in (25,30,35) = in
+not in = nin
+
+*/
+
+
+// suchen in Document
+ db.products..find({author:/^Banane/i}) // zeigt alle mit name estartet mit Banane 
+ db.products..find({author:/grün$/i}) // zeigt alle mit name endet mit grün
+ db.products..find({author:/.*süß.*/i}) // zeigt alle mit name enthält mi süß
+
+ // such nach in Browser
+  app.get("/about",(req,res)=>{  //  wenn wir suchen nach localhost:4000/about  zeigt uns about seite
+     res.send("Our about seite ${4000}")
+ }) 
+
+app.get("/ab?cd",(req,res)=>{  //  wenn wir suchen nach localhost:4000/abcd   zeigt uns ab?cd seite aber bei /abbcd zeigt uns fehler dass bedeudet entweder one b oder kein b
+     res.send("Our /ab?cd seite ${4000}")
+ }) 
+// ab?cd  b one oder garnicht
+// ab(cd)?cd  die innerhalb () muss wie ein buchstaben oder grupp behandel
+// ab+cd b one oder mehr
+// ab*cd statt * egal was wir schreiben
+// /a/ was wir schreiben nach / muss a auch inhält
+
+// Index anlegen 
+db.products.createIndex(
+    {name:'text'},
+    {default_language:'german'}
+)  // name_text
+
+// Alle Index anzeigen
+db.products.getIndexes()
+// [
+//   { v: 2, key: { _id: 1 }, name: '_id_', ns: 'product.products' },
+//   {
+//     v: 2,
+//     key: { _fts: 'text', _ftsx: 1 },
+//     name: 'name_text',
+//     ns: 'product.products',
+//     default_language: 'german',
+//     weights: { name: 1 },
+//     language_override: 'language',
+//     textIndexVersion: 3
+//   }
+// ]
+
+
+// Index Löchen
+db.products.dropIndex('name_text') // { nIndexesWas: 2, ok: 1 }
+
+// Textsuche 
+db.products.find( 
+    { 
+        $text:{
+            $search:"Apfel"
+        }
+    }
+) // zeigt wes name mit Apfel...
+
+
+// Nur ein Ergebnis 
+db.products.findOne({category:'Obst'}) // zeigt unst erst product
+
+// Alle Ergbnisse mit bestimmte Feldern
+db.products.find({},{
+    name:1,
+    price:1
+}) // zeigt nur name und price
+
+// Alle Ergbnisse ohne bestimmte Feldern
+db.products.find({},{
+    ratings:0,
+    views:0
+}) // zeigt alle daten auser ratings und views
+
+// Documents updaten
+db.products.updateOne({name:"Banane"},{
+    $set:{
+        price:1.29 // wird ändern 
+    }
+})
+// {
+//   acknowledged: true,
+//   insertedId: null,
+//   matchedCount: 1, // es ist da
+//   modifiedCount: 1,
+//   upsertedCount: 0 // es ist nicht hinzufügen
+// }
+
+
+// Ein Document aktualisieren/hinzufügen 
+// wenn document da muss aktualisieren wenn nicht da muss neu hinfügen
+db.products.updateOne({name:"Gurke"},{
+    $set:{
+        price:0.5,
+        category:"Gemüse",
+        views:0
+    }
+    },
+    {
+
+        upsert:true // prüft wenn nict da soll hinfügen
+})
+// {
+//   acknowledged: true,
+//   insertedId: ObjectId("63eba01643d750c798eb5f28"), Z// wird neu id gefügt
+//   matchedCount: 0, // hat nicht gefunden
+//   modifiedCount: 0,
+//   upsertedCount: 1  // hat hingefügt
+// }
+
+// Viele Document aktualisieren
+db.products.updateMany({category:"Obst"},
+{
+    $set:{
+        price:0.20 // hat alle price in category geandert
+    }
+}) // set bedeutet aktualsieren
+
+
+// {
+//   acknowledged: true,
+//   insertedId: null,
+//   matchedCount: 4, hat 4 mal category gefunden
+//   modifiedCount: 4,
+//   upsertedCount: 0  // hat nicht hingefügt 
+// }
+
+
+// ein Wert erhöhen 
+// hier jedes mal wen wir diese funktion ausführen erhöht views 1
+db.products.updateMany({name:"Gurke"},
+{
+    $inc:{
+        views:1 // hat views in name "Gurke" geandert
+    }
+})  // inc bedeutet erhöhen
+
+// ein Feld umbenennen
+db.products.updateMany({name:"Gurke"},
+{
+    $rename:{
+        views:"likes" // hat views  umbenennen zu like in name "Gurke" 
+    }
+}) // rename bedeutet umbenennen
+
+
+// Daten aus Collection verarbeiten
+db.products.aggregate([
+    {
+     
+        $match: {
+          price:{$gte:0.20}
+        }
+    }
+    {
+        $group:{
+            _id:"$category", // zeigt  _id als jeder category
+            total_views:{$sum: "$views"} // zeigt wie viel views für jeder category
+        }
+    }
+])//[ { _id: 'Gemüse', total_views: 0 }, { _id: 'Obst', total_views: 24 } ]
+
+
+// Document Löchen
+
+db.products.deleteOne({name:"Gurke"}) // löcht Document mit name Gurken
+// { acknowledged: true, deletedCount: 1 }
+
+
+// Viele Document Löchen
+db.products.deletemany({category:"Obst"})

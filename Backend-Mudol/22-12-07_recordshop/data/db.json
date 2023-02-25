@@ -1,0 +1,14 @@
+{
+    "records": [{
+        "id": 1,
+        "artist": "",
+        "title": "",
+        "year": "19xx"
+        }],
+    "user": [{
+        "id": 1,
+        "name": "",
+        "favoriteRecords": []
+        }]
+}
+
